@@ -871,6 +871,36 @@ Gate C & Deterministic Miller–Rabin verifier on $m=n+1$. \\
 \section*{Acknowledgments}
 We thank K.M. Hilton (AKA "Saffron") for revealing the connection between Fibonacci bounds and prime numbers.  We used ChatGPT as a structural editing and integration assistant for drafting, refactoring, and harmonizing language across sections; all technical choices and empirical claims are our own.  We also used Perplexity, Gemini , and Llama.cpp to analyze this paper, its constituents, claims, and pipeline for robustness, originality, and quality of results.  It is those analyses that persuaded the author to pre-publish our initial findings.   Finally, we express gratitude to OpenLeaf.com for their generous free plan, allowing this paper to be typeset for pre-print publication in a matter of hours, rather then days.  
 
+% ----------------------------------------------------------------
+\section*{Epilogue: Why Publish, and Why Now}
+
+I have spent forty–three years building and shipping software systems at scale. That background matters here. It biases me toward things that \emph{run}, toward results that are testable, and toward engineering patterns that survive contact with real data. This work began as an engineer’s question—“What local structure precedes primes?”—and matured into a research program only after the code continued to reproduce the same signals at increasing magnitudes and with clearer interpretations.
+
+Publishing this—first as a preprint—is not a claim to have “solved primes.” It is a decision to place a concrete, reproducible program in front of the communities most capable of \emph{proving, refuting, or extending} it. I am fully aware that this carries reputational risk. I accept that risk for three reasons.
+
+\paragraph{(1) The right kind of novelty.}
+Encoding integers by prime exponents is classical; what appears new is \emph{using} that space as a \emph{predictive medium} with explicit, local metrics (tension, curvature) and a normalized detector $\Phi$ that consistently concentrates at frontier states. The “obviousness in hindsight” does not diminish the novelty of the \emph{combination}: local geometry $+$ empirical recall $+$ alignment with global thinning (PNT) $+$ an interpretable pipeline that reduces verifier workload. If the community ultimately shows this is accidental or asymptotically fragile, that outcome is still useful; the empirical and visualization tools will stand on their own.
+
+\paragraph{(2) Intellectual honesty over posture.}
+The paper separates \textbf{proved} statements (canonical carry/minimality; $\psi$-balance), \textbf{empirical} behavior (recall and workload reduction across tested ranges), and a \textbf{conjecture} (a unifying emergence lens). This is not hedging; it is my standard of craft. I would rather risk criticism for publishing a well-marked research program than earn quiet approval for never sharing an idea until it is fully domesticated.
+
+\paragraph{(3) Reproducibility and falsifiability.}
+Everything needed to reproduce the figures and tables is public: code, parameters, and suggested operating points. This invites precise critique instead of speculation. In particular:
+\begin{itemize}[leftmargin=1.5em]
+  \item \textbf{What would count against the program?} A counterexample showing that, under fair and documented conditions, $\Phi$ at a recall-first threshold \emph{misses} a prime in range; or that the measured MR-calls/prime reduction disappears against a fair baseline; or that the spiral ridgelines are artifacts of plotting rather than of the PE-space signals.
+  \item \textbf{What would count for it?} A theorem delineating conditions under which $T\gg C$ on the pre-prime subsequence (or a clean surrogate); a sharper discriminator that sustains precision without harming recall; formal connections to classical results on gaps or constellations; independent replications and extensions.
+\end{itemize}
+
+\paragraph{Why arXiv.}
+The preprint channel is the correct venue for cross-listing work that is mathematical in structure, algorithmic in method, and empirical in evidence. It is fast, citable, and transparent. It also exposes the work to the specific audiences it needs: number theorists (to formalize or find counterexamples), algorithm designers (to benchmark and improve), and scientists of complex systems (to test or reject the broader emergence conjecture in their domains.
+
+\paragraph{On reputation and responsibility.}
+The real reputational risk is not in being wrong; it is in being unclear. The paper therefore favors clarity over flourish: claims are labeled by status; proofs are separated from heuristics; plots are backed by code; the conjecture is named as such. If future results reverse core empirical findings, I will revise or withdraw with the same clarity. If, on the other hand, this framing survives scrutiny and is formalized by others, then the risk will have been worth it.
+
+\medskip
+\noindent
+\emph{Why publish?} Because the work is new enough to matter, constrained enough to test, and documented enough to reproduce. If it fails, it will fail \emph{usefully}. If it succeeds, it will have added a structural chapter to a subject long thought to resist local explanation. Either outcome is better than silence.
+
 % ============================ References ============================
 \begin{thebibliography}{9}
 
