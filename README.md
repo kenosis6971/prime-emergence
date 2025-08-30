@@ -1,3 +1,4 @@
+
 # Prime Emergence in Prime Exponent Space
 
 This repository hosts the **Prime Emergence Project**, a research program that reinterprets prime numbers as **structural rupture events** in a novel representation called **Prime Exponent Space (PE-space)**.  
