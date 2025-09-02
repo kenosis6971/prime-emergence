@@ -1,0 +1,1090 @@
+\documentclass[11pt]{article}
+
+% --- Packages ---
+\usepackage{amsmath, amssymb, amsthm} % math symbols, theorems
+\usepackage{fullpage}                 % better margins
+\usepackage{enumitem}                 % custom lists (for exercises)
+\usepackage{hyperref}                 % hyperlinks
+\usepackage{mathtools}                % extensions of amsmath
+\usepackage{physics}                  % \abs, \norm, etc.
+\usepackage{graphicx}                 % figures
+\usepackage{tikz}                     % diagrams
+\usepackage{multicol}                 % multi-column layout for exercises if needed
+\usepackage{fancyhdr}                 % custom headers/footers
+\usepackage{booktabs}                 % better tables
+\usepackage{caption}                  % caption formatting
+\usepackage{tcolorbox}                % colored boxes (for examples, exercises)
+
+% --- Page style ---
+\pagestyle{fancy}
+\fancyhf{}                % clear all header/footers
+\rfoot{\thepage}          % page number in lower right
+\renewcommand{\headrulewidth}{0pt} % remove top line
+\renewcommand{\footrulewidth}{0pt} % no bottom line
+
+% --- Theorem styles ---
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{example}{Example}[section]
+\newtheorem{exercise}{Exercise}[section]
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[section]
+
+% --- Custom environments ---
+\newtcolorbox{studentnote}[1][]{
+  colback=blue!5!white,
+  colframe=blue!50!black,
+  title=Note,#1}
+
+\newtcolorbox{studentexercise}[1][]{
+  colback=green!5!white,
+  colframe=green!40!black,
+  title=Exercise,#1}
+
+\newtcolorbox{studentexample}[1][]{
+  colback=orange!5!white,
+  colframe=orange!85!black,
+  title=Example,#1}
+
+% --- Metadata ---
+\title{The Prime Odometer: A Student-Friendly Introduction to Generative Prime Emergence}
+\author{Kenneth Hilton}
+\date{August 2025}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Prime numbers are the ``atoms of arithmetic,'' yet they are usually defined negatively: 
+a number is prime if it has no divisors other than 1 and itself. 
+Classical algorithms follow this mindset, marking off composites to leave primes behind. 
+In this paper, we present the \emph{Prime Odometer}, a constructive and intuitive way 
+of seeing primes emerge as inevitable ``carry events'' in a coordinate system called 
+\emph{Prime Exponent Space} (PE-space). Instead of elimination, primes appear positively 
+when the arithmetic structure can no longer redistribute. 
+
+This student-oriented edition introduces the main ideas step by step, with examples, 
+analogies, figures, and exercises, to make the theory accessible to undergraduate number 
+theory students. Along the way, we contrast the Prime Odometer with the classical Sieve 
+of Eratosthenes, provide proofs with explicit small-number cases, and explore why this 
+reframing of primality as ``canonical carries'' is both mathematically rigorous and 
+conceptually illuminating.
+\end{abstract}
+
+\section*{Notation Guide}
+Throughout the paper we use several symbols and conventions that may be unfamiliar. 
+This section introduces them with examples for clarity.
+
+\begin{itemize}
+  \item $\backslash$ : \textbf{Set difference}. 
+  If $A = \{1,2,3\}$ and $B = \{2\}$, then $A \backslash B = \{1,3\}$.
+
+  \item $\equiv$ : \textbf{Congruence modulo $p$}. 
+  Writing $a \equiv b \pmod{p}$ means $p$ divides $(a-b)$. 
+  For example, $17 \equiv 2 \pmod{5}$ since $17-2=15$ is divisible by 5.
+
+  \item $\sim$ : \textbf{Asymptotic equivalence}. 
+  We write $f(n) \sim g(n)$ as $n \to \infty$ when $\lim_{n \to \infty} f(n)/g(n) = 1$. 
+  For instance, the Prime Number Theorem states $\pi(x) \sim \tfrac{x}{\log x}$.
+
+  \item $\forall$ : \textbf{For all}. Example: $\forall n \geq 2, \, n$ has a unique factorization.
+
+  \item $\exists$ : \textbf{There exists}. Example: $\exists$ infinitely many primes.
+
+  \item $\sigma(n)$ : \textbf{Prime exponent vector}. 
+  If $n = \prod p_i^{e_i}$, then $\sigma(n) = (e_1,e_2,e_3,\dots)$. 
+  Example: $12 = 2^2 \cdot 3^1$, so $\sigma(12) = (2,1,0,0,\dots)$.
+
+  \item $\nu_p(n)$ : \textbf{$p$-adic valuation}. 
+  The highest power of $p$ dividing $n$. 
+  Example: $\nu_2(40) = 3$ since $40 = 2^3 \cdot 5$.
+
+  \item $\mathbb{N}_{\geq 2}$ : the set of integers $\{2,3,4,\dots\}$.
+\end{itemize}
+
+\vspace{1em}
+\noindent
+\textbf{Tip for students:} whenever you see a symbol you do not immediately recognize, 
+refer back to this guide. New notation is always introduced with examples before being 
+used in proofs or algorithms.
+
+\section{Introduction}
+
+Prime numbers are the fundamental building blocks of arithmetic. 
+Every integer greater than one can be expressed uniquely as a product of primes, 
+a fact known as the \emph{Fundamental Theorem of Arithmetic}. 
+Despite this central role, primes have long appeared mysterious in their distribution: 
+they seem to pop up unpredictably along the number line. 
+
+Traditionally, primes are defined in a negative way:
+
+\begin{quote}
+\textbf{Definition (Classical).} A prime is an integer $p > 1$ with no divisors other than $1$ and $p$ itself.
+\end{quote}
+
+While correct, this definition feels unsatisfying. It says only what primes are \emph{not} 
+(divisible by anything else), rather than what they \emph{are}. 
+
+\subsection*{Historical Context}
+Euclid, over two thousand years ago, proved that there are infinitely many primes. 
+Centuries later, Eratosthenes devised his famous sieve, systematically eliminating multiples 
+of each prime to reveal those that remain. Modern algorithms still reflect this eliminative 
+mindset: primality tests probe for factors, sieves mark off composites, and analytic number 
+theory describes global patterns without explaining local inevitability. 
+
+For millennia, primes have thus been treated as the “survivors” left after composites are excluded. 
+
+\subsection*{A New Perspective: Generative Primes}
+In this paper we adopt a different, more constructive view: 
+primes appear not as anomalies but as \emph{inevitable carry events} in a structural framework 
+called \emph{Prime Exponent Space} (PE-space). 
+
+The key idea is simple:
+
+\begin{quote}
+Primes are the moments when arithmetic can no longer redistribute across existing factors, 
+and a new prime axis must be created.
+\end{quote}
+
+This event is directly analogous to the carry in positional notation. 
+
+\subsection*{Analogy: The Odometer}
+Consider an odometer or a counter in base 10:
+\[
+999 \longmapsto 1000.
+\]
+When you add one to 999, every digit “overflows,” and a new digit place must appear. 
+The carry is not optional --- it is structurally forced by the rules of arithmetic. 
+
+In PE-space, an analogous carry occurs not at every step, but exactly at the primes. 
+At these special points, redistribution across all existing prime axes fails, and the odometer 
+is forced to roll over into a new axis. The prime itself emerges as the one-hot vector 
+that marks this structural inevitability. 
+
+\subsection*{Goals of This Paper}
+Our purpose in this student edition is threefold:
+\begin{enumerate}
+  \item To introduce \emph{Prime Exponent Space} clearly, with examples and diagrams.
+  \item To explain the \emph{Prime Odometer Algorithm}, showing step by step how primes 
+        emerge constructively rather than by elimination.
+  \item To explore the mathematical and philosophical implications of this perspective, 
+        contrasting it with classical sieves and highlighting its value for teaching and intuition.
+\end{enumerate}
+
+We build up the theory gradually. Each new piece of notation is introduced with a worked example. 
+Exercises throughout invite you to test your understanding, and side notes offer historical 
+and conceptual context. By the end, you will see primes not as mysterious exceptions but as 
+structural necessities --- the canonical carries of arithmetic itself. 
+
+\begin{studentnote}
+\textbf{Roadmap.} 
+Section 2 defines Prime Exponent Space with examples.  
+Section 3 introduces smooth frontiers and pre-primes.  
+Section 4 presents the Prime Odometer algorithm.  
+Section 5 proves its correctness.  
+Section 6 compares it to classical sieves.  
+Section 7 explores implications and perspectives.  
+Exercises are collected in Section 8, and the paper concludes in Section 9.  
+Appendices provide pseudocode and extended notation.
+\end{studentnote}
+
+\section{Prime Exponent Space (PE-Space)}
+
+The central tool of the Prime Odometer is a new coordinate system for the integers: 
+\emph{Prime Exponent Space}, abbreviated PE-space. 
+This representation is rooted in the \emph{Fundamental Theorem of Arithmetic}, which states 
+that every integer greater than 1 can be written uniquely as a product of prime powers.
+
+\begin{definition}[Prime Exponent Vector]
+Let $p_1 = 2, p_2 = 3, p_3 = 5, \dots$ be the ordered primes. 
+For each integer $n \geq 2$, write its unique prime factorization:
+\[
+n = \prod_{i \geq 1} p_i^{e_i(n)} ,
+\]
+where all but finitely many $e_i(n)$ are zero. 
+The \emph{prime exponent vector} of $n$ is
+\[
+\sigma(n) = (e_1(n), e_2(n), e_3(n), \dots).
+\]
+\end{definition}
+
+Thus every integer corresponds to a point in an infinite-dimensional lattice 
+with nonnegative integer coordinates. 
+
+\subsection{Basic Properties}
+Prime exponent vectors make arithmetic simpler:
+\begin{align*}
+\sigma(ab) &= \sigma(a) + \sigma(b), \\\\
+\sigma\!\left(\frac{a}{b}\right) &= \sigma(a) - \sigma(b),
+\end{align*}
+whenever $b$ divides $a$. In words: multiplication becomes vector addition, 
+and division becomes subtraction.
+
+\begin{studentexample}
+Let $a = 12 = 2^2 \cdot 3^1$ and $b = 18 = 2^1 \cdot 3^2$.  
+Then
+\[
+\sigma(a) = (2,1,0,0,\dots), \quad \sigma(b) = (1,2,0,0,\dots).
+\]
+Their product is $a \cdot b = 216 = 2^3 \cdot 3^3$, and indeed
+\[
+\sigma(ab) = (3,3,0,0,\dots) = \sigma(a) + \sigma(b).
+\]
+\end{studentexample}
+
+\begin{studentnote}
+\textbf{Why is this helpful?}  
+On the number line, multiplication feels complicated, 
+but in PE-space it reduces to simple vector addition. 
+The price we pay is that the successor operation $n \mapsto n+1$ 
+becomes more subtle --- and this is exactly where the Prime Odometer comes in. 
+\end{studentnote}
+
+\subsection{Primes as One-Hot Vectors}
+In PE-space, primes have a distinctive form.  
+Each prime $p_k$ corresponds to a \emph{one-hot vector}: all entries are zero except 
+for a single $1$ in the $k$th position.
+
+\begin{studentexample}
+\begin{itemize}
+  \item $2 = 2^1$, so $\sigma(2) = (1,0,0,0,\dots)$.
+  \item $3 = 3^1$, so $\sigma(3) = (0,1,0,0,\dots)$.
+  \item $5 = 5^1$, so $\sigma(5) = (0,0,1,0,\dots)$.
+  \item $7 = 7^1$, so $\sigma(7) = (0,0,0,1,0,\dots)$.
+\end{itemize}
+\end{studentexample}
+
+Composites, by contrast, have multiple nonzero entries.  
+For example:
+\[
+12 = 2^2 \cdot 3^1 \quad \Rightarrow \quad \sigma(12) = (2,1,0,0,\dots).
+\]
+
+\subsection{Dimensional Viewpoint}
+One way to think of PE-space is as a coordinate system where each prime defines an axis.  
+Composites are points inside the span of existing axes.  
+Primes, however, mark the \emph{first use of a new axis}.  
+In this sense, primes are dimension-creating events.
+
+\begin{studentnote}
+When a new prime appears, the dimension of our representation grows. 
+This is why we say primes are not just numbers, but structural milestones: 
+they extend the dimensionality of number space. 
+\end{studentnote}
+
+\subsection*{Exercises (Set \#1)}
+\begin{studentexercise}
+Compute the prime exponent vectors for:
+\[
+20, \quad 30, \quad 64, \quad 210.
+\]
+(Hint: factor each number first.)
+\end{studentexercise}
+
+\begin{studentexercise}
+Show that $\sigma(45) + \sigma(14) = \sigma(630)$. 
+Verify this equality both by prime factorization and by vector addition.
+\end{studentexercise}
+
+\begin{studentexercise}
+Which numbers less than 20 are represented by one-hot vectors in PE-space? 
+What does this tell you?
+\end{studentexercise}
+
+\section{Smooth Frontiers and Pre-Primes}
+
+Having defined PE-space, we now investigate how the sequence of natural numbers 
+moves through it. The key idea is that the set of integers whose prime factors 
+are bounded by some prime $p_k$ forms a kind of ``frontier.'' 
+When we step past that frontier, a new prime dimension must be introduced. 
+
+\begin{definition}[$p_k$-smooth semigroup]
+Fix $k \geq 1$. Define
+\[
+S_k = \Bigl\{ \prod_{i=1}^k p_i^{e_i} : e_i \in \mathbb{N}_0 \Bigr\}.
+\]
+This is the set of integers whose prime factors are among the first $k$ primes 
+($2,3,\dots,p_k$). We call such numbers \emph{$p_k$-smooth}.
+\end{definition}
+
+\begin{definition}[Pre-prime at level $k$]
+A number $n \in S_k$ is called a \emph{pre-prime at level $k$} 
+if its successor $n+1 \notin S_k$. 
+In other words, $n$ is inside the frontier, but $n+1$ lies outside. 
+\end{definition}
+
+\begin{theorem}[Emergence Threshold]
+The next prime $p_{k+1}$ is exactly the smallest integer not in $S_k$:
+\[
+p_{k+1} = \min\bigl(\mathbb{N}_{\geq 2} \setminus S_k \bigr).
+\]
+Equivalently, $p_{k+1}-1 \in S_k$ and $p_{k+1} \notin S_k$.
+\end{theorem}
+
+\begin{proof}[Sketch of proof]
+If $n \notin S_k$, then $n$ has a prime factor $q > p_k$. 
+The smallest such $n$ must be $q$ itself, which is prime, 
+and hence $p_{k+1}$. By definition, $p_{k+1}-1$ uses only smaller primes, 
+so $p_{k+1}-1 \in S_k$.
+\end{proof}
+
+\subsection{Worked Example: Frontier at $p_3=5$}
+Let $k=3$, so $S_3$ consists of numbers whose prime factors are only $2,3,5$.  
+This includes:
+\[
+2,3,4,5,6,8,9,10,12,15,16,18,20,24,25,27,30, \dots
+\]
+
+\begin{itemize}
+  \item $6 = 2 \cdot 3$ belongs to $S_3$. Its successor $7$ is not in $S_3$, 
+        because 7 requires a new prime factor.  
+        Thus 6 is a pre-prime, and 7 is prime.  
+  \item Similarly, $10 \in S_3$, but $11 \notin S_3$, so $10$ is a pre-prime 
+        and $11$ is prime.  
+  \item $12 \in S_3$, but $13 \notin S_3$, so $12$ is a pre-prime 
+        and $13$ is prime.
+\end{itemize}
+
+Notice that just before each new prime, 
+we find a number in $S_k$ that ``cannot step forward'' without leaving the frontier. 
+
+\begin{studentnote}
+This explains why we call these numbers \emph{pre-primes}: 
+they are exactly the integers that immediately precede primes, 
+marking the edge of smooth frontiers in PE-space. 
+\end{studentnote}
+
+\subsection{Canonical Carries}
+The step $p_{k+1}-1 \mapsto p_{k+1}$ is not arbitrary. 
+It is structurally forced: all smaller primes fail to absorb the successor, 
+so the odometer ``rolls over'' into a new axis. 
+We call this event a \emph{canonical carry}. 
+
+\begin{studentexample}
+At $n=6$, the next integer is 7.  
+All smaller primes $2,3,5$ fail to divide 7.  
+Thus the odometer is forced to carry into a new axis, creating the prime 7.  
+In vector form:
+\[
+\sigma(6) = (1,1,0,0,\dots), \quad 
+\sigma(7) = (0,0,0,1,0,\dots).
+\]
+\end{studentexample}
+
+\begin{studentnote}
+\textbf{Analogy.}  
+Think again of base-10: when the digits $999$ ``overflow,'' 
+the only option is to add a new digit.  
+In PE-space, when no existing prime axis can absorb the increment, 
+a new prime axis must appear. That is the birth of a prime. 
+\end{studentnote}
+
+\subsection*{Exercises (Set \#2)}
+\begin{studentexercise}
+List all elements of $S_2$ (the $3$-smooth numbers) up to 30. 
+Which of them are pre-primes? What primes follow them?
+\end{studentexercise}
+
+\begin{studentexercise}
+Show that 30 is a pre-prime in $S_3$.  
+Which prime follows it?  
+Write both $\sigma(30)$ and $\sigma(31)$.
+\end{studentexercise}
+
+\begin{studentexercise}
+Verify that for each prime $p$, $p-1$ lies in the smooth semigroup 
+defined by the previous primes. 
+(Hint: factor $p-1$ into primes smaller than $p$.)
+\end{studentexercise}
+
+\section{The Prime Odometer Algorithm}
+
+We are now ready to define the \emph{Prime Odometer} itself. 
+This is an incremental algorithm that advances one integer at a time, 
+updating a compact state. 
+At each step $n \mapsto n+1$, the odometer either redistributes across 
+known prime axes (composite case) or is forced to create a new axis (prime case). 
+
+\subsection{Residue Counters and State Representation}
+
+The algorithm keeps track of only a finite amount of information at each stage:
+
+\begin{itemize}
+  \item A list $P = \{p_1, p_2, \dots, p_k\}$ of all primes discovered so far, 
+        sufficient to factor numbers up to the current bound.
+  \item For each prime $p \in P$, a residue counter
+        \[
+        r_p(n) \equiv n \pmod{p}.
+        \]
+        This counter increments with $n$, and resets to $0$ exactly when $p \mid n$.
+  \item (Optional) Higher-power residues $r_{p^t}(n) \equiv n \pmod{p^t}$, 
+        which allow direct computation of valuations $\nu_p(n)$.
+\end{itemize}
+
+Thus the state at $n$ is finite and compact.  
+We never need to re-factor numbers from scratch; 
+instead, we update residues step by step.
+
+\subsection{Successor Update Rule}
+
+To advance from $n$ to $m = n+1$, the odometer performs:
+
+\begin{enumerate}
+  \item \textbf{Increment residues.}  
+        For each $p \in P$, update
+        \[
+        r_p(m) = (r_p(n) + 1) \bmod p.
+        \]
+  \item \textbf{Check for divisibility.}  
+        If $r_p(m) = 0$ for some $p \leq \sqrt{m}$, 
+        then $p \mid m$.  
+        Repeatedly check higher powers $p^t$ if needed to determine $\nu_p(m)$.
+  \item \textbf{Prime case.}  
+        If no $p \in P$ with $p \leq \sqrt{m}$ divides $m$, 
+        then $m$ is prime.  
+        Append $m$ to $P$, initialize $r_m(m) = 0$, 
+        and record $\sigma(m)$ as a one-hot vector.
+\end{enumerate}
+
+\begin{studentnote}
+This rule makes the Prime Odometer:
+\begin{itemize}
+  \item \emph{Generative:} builds each successor from the previous state.
+  \item \emph{Deterministic:} no randomness or probabilistic tests.
+  \item \emph{Factor-free:} never re-factors $m$ from scratch.
+  \item \emph{Sequential:} primes emerge exactly in order.
+\end{itemize}
+\end{studentnote}
+
+\subsection{Worked Example: From 5 to 7}
+
+Suppose we are at $n=5$. The current prime list is $P = \{2,3\}$.
+
+\begin{enumerate}
+  \item Residues at $n=5$:  
+        \[
+        r_2(5) = 1, \quad r_3(5) = 2.
+        \]
+  \item Tick to $n=6$:  
+        \[
+        r_2(6) = 0, \quad r_3(6) = 0.
+        \]
+        Since both residues are zero, $6$ is divisible by $2$ and $3$, 
+        confirming that $6$ is composite. 
+        Its factorization is $2 \cdot 3$.
+  \item Tick to $n=7$:  
+        \[
+        r_2(7) = 1, \quad r_3(7) = 1.
+        \]
+        No counter is zero.  
+        Therefore no smaller prime divides 7, 
+        so $7$ is prime.  
+        We append $7$ to $P$ and record $\sigma(7) = (0,0,0,1,0,\dots)$.
+\end{enumerate}
+
+\begin{studentexample}
+This illustrates the odometer’s rhythm:
+\begin{itemize}
+  \item At $n=6$, residues wrapped to zero, producing a composite.
+  \item At $n=7$, no residue wrapped, forcing a new axis.  
+        Thus 7 emerges as prime.
+\end{itemize}
+\end{studentexample}
+
+\subsection{p-adic Carry Depth}
+
+The odometer rule can also be described in terms of \emph{$p$-adic valuation}, 
+which measures the depth of a carry.
+
+\begin{definition}[p-adic carry depth]
+For a prime $p$, define
+\[
+d_p(n) = \max \{ t \geq 0 : n \equiv -1 \pmod{p^t} \}.
+\]
+Then the valuation of $p$ in $n+1$ is
+\[
+\nu_p(n+1) = d_p(n).
+\]
+\end{definition}
+
+\begin{studentexample}
+In base-10, the number of trailing 9’s in $n$ equals the carry depth when incrementing $n$.  
+Similarly, in base-$p$, the number of trailing $(p-1)$ digits controls the $p$-adic carry depth.  
+
+For instance, $n=8 \equiv -1 \pmod{9}$, so $d_3(8)=2$.  
+Thus $\nu_3(9)=2$, consistent with $9 = 3^2$.
+\end{studentexample}
+
+\subsection*{Exercises (Set \#3)}
+
+\begin{studentexercise}
+At $n=10$, with $P = \{2,3,5,7\}$, compute the residues $r_p(10)$ for each $p \in P$.  
+Advance the odometer to $n=11$.  
+Which case occurs: composite or prime?
+\end{studentexercise}
+
+\begin{studentexercise}
+Verify that $14$ is composite by tracking residues with $P=\{2,3,5\}$.  
+Then advance to $15$ and show that it is also composite.  
+What happens at $n=16$ and $n=17$?
+\end{studentexercise}
+
+\begin{studentexercise}
+Use the definition of $p$-adic carry depth to compute $\nu_2(31)$, 
+given that $31 \equiv -1 \pmod{32}$.  
+Check your result by factoring $32$.
+\end{studentexercise}
+
+\section{The Odometer Theorem}
+
+The Prime Odometer does more than suggest primes emerge as carries: 
+it can be proved to generate the correct prime exponent vector $\sigma(n)$ 
+for every integer $n \geq 2$. 
+This establishes the algorithm’s \emph{correctness}. 
+
+\begin{theorem}[Prime Odometer Correctness]
+Initialize at $n=2$ with
+\[
+\sigma(2) = (1,0,0,\dots), \quad P=\{2\}, \quad r_2(2)=0.
+\]
+At each successor step $n \mapsto n+1$, update residues as described in Section 4. 
+Then:
+\begin{enumerate}
+  \item For all $n \geq 2$, the odometer state correctly represents $\sigma(n)$.
+  \item If $n+1$ is composite, then $\sigma(n+1)$ is determined exactly by the residue wraps 
+        of primes $p \leq \sqrt{n+1}$.
+  \item If $n+1$ is prime, then $\sigma(n+1) = (0,0,\dots,0,1)$ is a one-hot vector on a new axis.
+\end{enumerate}
+Thus the odometer generates the exact prime exponent vector at every step 
+and identifies primes without external verification.
+\end{theorem}
+
+\begin{proof}[Proof by induction]
+\textbf{Base case.}  
+At $n=2$, we initialize $\sigma(2)=(1,0,0,\dots)$, $P=\{2\}$, and $r_2(2)=0$.  
+This is correct by definition.
+
+\medskip
+\noindent
+\textbf{Inductive step.}  
+Assume the odometer state is correct for $n$.  
+Let $m = n+1$.  
+Update each residue $r_p(n)$ to $r_p(m) = (r_p(n)+1) \bmod p$. 
+
+\begin{itemize}
+  \item \emph{Composite case.}  
+        If some $p \in P$ with $p \leq \sqrt{m}$ has $r_p(m)=0$, 
+        then $p \mid m$.  
+        Repeated wraps reveal $\nu_p(m)$, and dividing out these prime powers 
+        leaves either $1$ or a cofactor $q > \sqrt{m}$.  
+        In the latter case, $q$ must itself be prime, so $m$ is composite but fully factorized.  
+        Hence $\sigma(m)$ is computed exactly.
+  \item \emph{Prime case.}  
+        If no such $p$ divides $m$, then $m$ has no prime factor $\leq \sqrt{m}$.  
+        Therefore $m$ is prime.  
+        Append $m$ to $P$, initialize $r_m(m)=0$, and set $\sigma(m)$ to a one-hot vector.
+\end{itemize}
+
+In both cases, the state is updated consistently.  
+Thus by induction, the odometer remains correct for all $n \geq 2$.
+\end{proof}
+
+\subsection{Illustrative Walkthroughs}
+
+\begin{studentexample}
+\textbf{Case 1: Composite.}  
+At $n=8$, residues for $P=\{2,3,5,7\}$ are updated to give $r_2(9)=0$.  
+Thus $2 \mid 9$? No — but check carefully: in fact $r_3(9)=0$, so $3 \mid 9$.  
+Repeatedly checking gives $\nu_3(9)=2$, confirming $9=3^2$.  
+The odometer records $\sigma(9)=(0,2,0,0,\dots)$.
+\end{studentexample}
+
+\begin{studentexample}
+\textbf{Case 2: Prime.}  
+At $n=10$, the successor is $m=11$.  
+Residues for $2,3,5,7$ are all nonzero, so no small prime divides 11.  
+Therefore $11$ is prime, and $\sigma(11) = (0,0,0,0,1,0,\dots)$.
+\end{studentexample}
+
+\subsection{Corollary: Canonical Carry Certificate}
+
+\begin{corollary}
+For every $k \geq 1$, the step
+\[
+p_{k+1}-1 \in S_k, \qquad p_{k+1} \notin S_k
+\]
+forces $\sigma(p_{k+1}) = (0,0,\dots,0,1)$.  
+That is, the primality of $p_{k+1}$ is certified structurally by the canonical carry, 
+with no need for external tests.
+\end{corollary}
+
+\begin{studentnote}
+This is one of the most striking features of the odometer: 
+\emph{primes prove themselves}.  
+Their structure is forced by the failure of redistribution, 
+just as the carry to a new digit is forced in positional systems.
+\end{studentnote}
+
+\subsection*{Exercises (Set \#4)}
+
+\begin{studentexercise}
+Use the induction argument to show that the odometer produces the correct factorization 
+for $n=12$. Verify by hand that $\sigma(12)=(2,1,0,0,\dots)$.
+\end{studentexercise}
+
+\begin{studentexercise}
+Trace the odometer from $n=14$ to $n=17$.  
+Which are composites? Which are prime?  
+Write the corresponding $\sigma(n)$ vectors.
+\end{studentexercise}
+
+\begin{studentexercise}
+Explain why it is enough to check divisibility by primes $\leq \sqrt{m}$ 
+when deciding if $m$ is prime. 
+(Hint: what would happen if $m$ had a factor larger than $\sqrt{m}$?)
+\end{studentexercise}
+
+\section{Comparison with Classical Sieves}
+
+The Prime Odometer provides a constructive, sequential way of generating primes. 
+To appreciate its novelty, it is helpful to compare it with the most famous 
+classical method: the Sieve of Eratosthenes. 
+
+\subsection{The Sieve of Eratosthenes}
+
+Devised over two thousand years ago, the sieve remains a cornerstone algorithm 
+for enumerating primes up to a given bound $N$:
+
+\begin{enumerate}
+  \item Write down the list $\{2,3,\dots,N\}$.
+  \item Select the next unused number $p$; it is prime.
+  \item Eliminate all multiples of $p$ from the list.
+  \item Repeat until all numbers are marked as composite or declared prime.
+\end{enumerate}
+
+This process is \emph{eliminative}: primes are discovered only after composites 
+have been systematically removed. The sieve is efficient --- its complexity is 
+$O(N \log\log N)$ --- but conceptually it frames primes as ``leftovers.''
+
+\subsection{The Prime Odometer}
+
+By contrast, the Prime Odometer is \emph{generative}. 
+It advances $n \mapsto n+1$ sequentially, updating residue counters. 
+\begin{itemize}
+  \item If residues wrap to zero, $n+1$ is composite, and its factorization 
+        follows directly from the counters.
+  \item If no counter wraps, redistribution fails and a new axis is forced. 
+        Thus $n+1$ emerges as prime.
+\end{itemize}
+
+In other words:
+\begin{itemize}
+  \item The sieve says: ``Remove composites, and what remains is prime.''
+  \item The odometer says: ``Advance step by step; primes are inevitable 
+        carry events.''
+\end{itemize}
+
+\subsection{Side-by-Side Comparison}
+
+The following table illustrates the difference for numbers $2 \leq n \leq 20$.
+
+\begin{center}
+\begin{tabular}{@{}lll@{}}
+\toprule
+$n$ & \textbf{Sieve of Eratosthenes} & \textbf{Prime Odometer} \\
+\midrule
+2   & Initial prime, multiples removed & First prime axis, $\sigma(2)=(1,0,0,\dots)$ \\
+3   & Declared prime, remove multiples & New axis forced, $\sigma(3)=(0,1,0,\dots)$ \\
+4   & Marked composite ($2 \cdot 2$)   & Residue wrap: divisible by 2 \\
+5   & Declared prime, remove multiples & New axis forced, $\sigma(5)=(0,0,1,\dots)$ \\
+6   & Marked composite ($2 \cdot 3$)   & Residue wraps for 2 and 3 \\
+7   & Declared prime, remove multiples & New axis forced, $\sigma(7)=(0,0,0,1,\dots)$ \\
+$\vdots$ & $\vdots$ & $\vdots$ \\
+19  & Declared prime                   & New axis forced, $\sigma(19)=(0,0,0,0,0,0,1,\dots)$ \\
+20  & Marked composite ($2 \cdot 2 \cdot 5$) & Residue wraps: divisible by 2 and 5 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Conceptual Contrast}
+
+\begin{studentnote}
+\begin{itemize}
+  \item \textbf{Sieve:} primes are what survive elimination.
+  \item \textbf{Odometer:} primes are what emerge when redistribution fails.
+\end{itemize}
+\end{studentnote}
+
+This is the heart of the difference. 
+Both methods are correct, but they offer very different mental models. 
+The sieve emphasizes absence; the odometer emphasizes inevitability.
+
+\subsection*{Exercises (Set \#5)}
+
+\begin{studentexercise}
+Run the sieve of Eratosthenes for $N=30$.  
+Which numbers are marked composite? Which are declared prime?  
+Compare with the odometer’s description of the same interval.
+\end{studentexercise}
+
+\begin{studentexercise}
+Explain in your own words the difference between an \emph{eliminative} 
+and a \emph{generative} algorithm.  
+Give one example of each outside of number theory.
+\end{studentexercise}
+
+\begin{studentexercise}
+Why does the sieve require $O(N)$ storage, 
+while the odometer requires only $O(\pi(\sqrt{N}))$ residue counters?  
+(Hint: consider how many primes are $\leq \sqrt{N}$.)
+\end{studentexercise}
+
+\section{Implications and Perspectives}
+
+The Prime Odometer reframes the nature of primality.  
+Instead of treating primes as mysterious anomalies scattered along the number line, 
+it casts them as \emph{inevitable structural events}.  
+This perspective has several important consequences, both mathematical and philosophical.
+
+\subsection{Positive Definition of Primes}
+
+Classically:
+\begin{quote}
+``A prime is an integer greater than one that has no divisors other than 1 and itself.''
+\end{quote}
+
+This is a \emph{negative definition}: it defines primes by what they lack.  
+
+In the odometer framework, however, we can say:
+\begin{quote}
+``A prime is the one-hot successor state forced when redistribution across existing prime axes fails.''
+\end{quote}
+
+This is a \emph{positive definition}: it specifies what primes \emph{are}, not merely what they are not.  
+Primes emerge constructively as canonical carries, rather than being discovered by absence.
+
+\subsection{Inductive Certification}
+
+Because the odometer maintains residues for all primes up to $\sqrt{n}$, 
+the correctness of $\sigma(n+1)$ is guaranteed inductively.  
+No external primality test is required.  
+
+\begin{studentnote}
+\textbf{Key idea:}  
+Primality is not something to be checked; it is something to be \emph{forced}.  
+If all counters fail, the system must create a new axis.  
+This is an intrinsic certificate of primality.
+\end{studentnote}
+
+\subsection{Duality with Positional Systems}
+
+There is a striking parallel between positional base-$B$ systems and PE-space:
+
+\begin{itemize}
+  \item In base-$B$, carries occur constantly.  
+        Every time we increment a string of trailing $(B-1)$’s, 
+        we must create a carry into the next digit.  
+        Example: $999 \mapsto 1000$.
+  \item In PE-space, carries occur sparsely.  
+        They happen exactly at primes, with frequency about $1 / \log n$ 
+        (by the Prime Number Theorem).
+\end{itemize}
+
+Thus:
+\[
+\text{Base-$B$: constant-rate carries} \qquad 
+\longleftrightarrow \qquad
+\text{PE-space: sparse canonical carries}.
+\]
+
+\begin{studentexample}
+Think of base-2 (binary). Every second number requires a carry: $1 \mapsto 10$, $11 \mapsto 100$, etc.  
+By contrast, in PE-space the next carry may be very far away: 
+after 101, the next prime 103 may require 2 steps, 
+but after 113, the next prime 127 may require 14 steps.  
+The carries are irregular but inevitable.
+\end{studentexample}
+
+\subsection{Broader Implications}
+
+The odometer suggests new ways of teaching and thinking about primes:
+
+\begin{itemize}
+  \item \textbf{Pedagogical clarity.}  
+        Students can view primes as positive milestones of arithmetic, 
+        not as puzzles that must be checked by trial division.
+  \item \textbf{Analytic connection.}  
+        The fact that carries appear at rate $\sim 1/\log n$ 
+        ties the odometer directly to the Prime Number Theorem.
+  \item \textbf{Philosophical shift.}  
+        Primes are not anomalies; they are structural necessities.  
+        They mark the places where arithmetic must expand.
+\end{itemize}
+
+\begin{studentnote}
+\textbf{Analogy:}  
+In physics, a phase transition (like water freezing into ice) 
+occurs when redistribution of energy fails.  
+In number theory, a prime emerges when redistribution of factors fails.  
+Both are examples of structural inevitability.
+\end{studentnote}
+
+\subsection*{Exercises (Set \#6)}
+
+\begin{studentexercise}
+State in your own words the difference between the \emph{negative definition} 
+and the \emph{positive definition} of primes.  
+Why might the positive definition be easier to teach to beginners?
+\end{studentexercise}
+
+\begin{studentexercise}
+Explain the analogy between base-$B$ carries and PE-space carries.  
+Why are positional carries constant in frequency, while prime carries become sparser?
+\end{studentexercise}
+
+\begin{studentexercise}
+Primes occur with asymptotic density $\sim 1 / \log n$.  
+Use this fact to argue why canonical carries in PE-space become rarer but never disappear. 
+(Hint: recall Euclid’s proof that there are infinitely many primes.)
+\end{studentexercise}
+
+\section{Exercises and Projects}
+
+Throughout the paper, we have introduced short exercise sets at the end of each section.  
+Here we gather them together and add some extended projects.  
+These are intended to reinforce understanding and to encourage exploration 
+beyond the formal text.
+
+\subsection{Collected Exercises}
+
+\begin{enumerate}[label=\textbf{Set \#\arabic*:}, leftmargin=*]
+
+  \item \textbf{Prime Exponent Space}
+  \begin{enumerate}
+    \item Compute $\sigma(20), \sigma(30), \sigma(64), \sigma(210)$.  
+    \item Show that $\sigma(45) + \sigma(14) = \sigma(630)$.  
+    \item Which numbers less than 20 correspond to one-hot vectors? Why?
+  \end{enumerate}
+
+  \item \textbf{Smooth Frontiers and Pre-Primes}
+  \begin{enumerate}
+    \item List all elements of $S_2$ up to 30. Identify pre-primes and their successor primes.  
+    \item Show that 30 is a pre-prime in $S_3$. What prime follows it? Write both $\sigma(30)$ and $\sigma(31)$.  
+    \item Verify that for each prime $p$, $p-1 \in S_k$ for appropriate $k$.  
+  \end{enumerate}
+
+  \item \textbf{Prime Odometer Algorithm}
+  \begin{enumerate}
+    \item Starting at $n=10$, with $P=\{2,3,5,7\}$, compute residues and decide if 11 is prime.  
+    \item Track residues for $n=14,15,16,17$. Which are composites? Which is prime?  
+    \item Use $p$-adic carry depth to show that $\nu_2(32)=5$.  
+  \end{enumerate}
+
+  \item \textbf{Odometer Theorem}
+  \begin{enumerate}
+    \item Use induction to show $\sigma(12)=(2,1,0,0,\dots)$.  
+    \item Trace the odometer from $n=14$ to $n=17$. Write each $\sigma(n)$.  
+    \item Explain why it is enough to test divisibility only by primes $\leq \sqrt{m}$.  
+  \end{enumerate}
+
+  \item \textbf{Comparison with Classical Sieves}
+  \begin{enumerate}
+    \item Run Eratosthenes’ sieve for $N=30$. Compare with odometer results.  
+    \item Give an example of a generative algorithm and an eliminative algorithm outside number theory.  
+    \item Explain why the sieve uses $O(N)$ storage while the odometer needs only $O(\pi(\sqrt{N}))$ counters.  
+  \end{enumerate}
+
+  \item \textbf{Implications and Perspectives}
+  \begin{enumerate}
+    \item Contrast the negative and positive definitions of primes. Which is pedagogically clearer?  
+    \item Explain the analogy between positional carries and canonical carries.  
+    \item Why do canonical carries get sparser but never vanish?  
+  \end{enumerate}
+
+\end{enumerate}
+
+\subsection{Extended Projects}
+
+\begin{enumerate}[label=\textbf{Project \#\arabic*:}, leftmargin=*]
+
+  \item \textbf{Implementing the Prime Odometer.}  
+  Write a short computer program (in Python, Java, or another language) 
+  that generates primes using the residue update rule of the Prime Odometer.  
+  Compare its performance with a basic implementation of the Sieve of Eratosthenes 
+  for $N=1000$.  
+
+  \item \textbf{Prime Gaps.}  
+  Use your implementation to record prime gaps (the difference between consecutive primes).  
+  Plot the first 200 prime gaps. Do you see any patterns?  
+  How does this relate to the fact that carries in PE-space become sparser?  
+
+  \item \textbf{Residue Visualizations.}  
+  For a given prime $p$, track the residue counter $r_p(n)$ as $n$ advances.  
+  Make a diagram showing how the counter cycles.  
+  Overlay several primes (e.g. 2, 3, 5) to see how their cycles interact.  
+
+  \item \textbf{Exploring Pre-Primes.}  
+  Make a list of the first 50 pre-primes.  
+  Do they cluster or show any patterns?  
+  What can you say about the size of the prime gaps they precede?  
+
+  \item \textbf{Philosophical Essay.}  
+  Write a short essay comparing the eliminative vs. generative definitions of primes.  
+  Reflect on how different perspectives can change the way we view mathematical truth.  
+
+\end{enumerate}
+
+\begin{studentnote}
+\textbf{Advice for students:}  
+Do not treat exercises as a checklist.  
+The goal is to develop intuition.  
+When possible, work with small numbers, draw diagrams, 
+and think about analogies to familiar systems like decimal odometers. 
+\end{studentnote}
+
+\section{Conclusion}
+
+We have traveled from the classical negative definition of primes to a new, 
+constructive viewpoint: primes as \emph{canonical carries} in Prime Exponent Space.  
+This journey highlights a central theme:
+
+\begin{quote}
+Primes are not random survivors of elimination, 
+but inevitable milestones of arithmetic --- 
+the moments when redistribution fails and a new axis must be created.
+\end{quote}
+
+The Prime Odometer embodies this idea algorithmically.  
+By maintaining residue counters and advancing one tick at a time, 
+it generates the prime exponent vector $\sigma(n)$ for every integer $n$.  
+At composites, residues wrap and factors are revealed.  
+At primes, no residue wraps, and a one-hot vector is forced.  
+Primality is therefore certified structurally, without external tests.
+
+\subsection*{Comparison with Classical Approaches}
+
+The contrast with the Sieve of Eratosthenes is striking:
+\begin{itemize}
+  \item The sieve is \emph{eliminative}: it removes composites to expose primes.  
+  \item The odometer is \emph{generative}: it constructs successors, 
+        and primes emerge when carrying is unavoidable.
+\end{itemize}
+
+Both methods are valid, but they offer different conceptual models.  
+The sieve emphasizes absence; the odometer emphasizes inevitability.  
+
+\subsection*{Pedagogical Significance}
+
+For students, the odometer provides:
+\begin{itemize}
+  \item A positive, constructive definition of primality.  
+  \item A step-by-step algorithm that can be simulated by hand or computer.  
+  \item A unifying analogy to positional number systems: 
+        primes as the ``carry digits'' of arithmetic.  
+\end{itemize}
+
+By reframing primes in this way, we open doors to intuition, teaching clarity, 
+and interdisciplinary analogies.  
+
+\begin{studentnote}
+\textbf{Key takeaway:}  
+The mystery of primes is not that they appear irregularly, 
+but that they appear inevitably.  
+They are the canonical carries of arithmetic --- sparse, structural, 
+and unavoidable.  
+\end{studentnote}
+
+\appendix
+
+\section*{Appendix A: Minimal Pseudocode for the Prime Odometer}
+
+This pseudocode shows how to implement the Prime Odometer in a programming language 
+such as Python. It is deliberately minimal, focusing only on primality detection 
+rather than full factorization.
+
+\begin{verbatim}
+# Prime Odometer (minimal version)
+
+# Initialize
+P = [2]                 # list of known primes
+r = {2: 0}              # residues modulo each prime
+n = 2                   # starting integer
+
+def tick(n, P, r):
+    m = n + 1
+    composite = False
+
+    # 1. Increment residues
+    for p in P:
+        r[p] = (r[p] + 1) % p
+
+    # 2. Check for divisibility
+    for p in P:
+        if p * p > m: 
+            break
+        if r[p] == 0:
+            composite = True
+            break
+
+    if composite:
+        return (m, "composite", P, r)
+    else:
+        # m is prime
+        P.append(m)
+        r[m] = 0
+        return (m, "prime", P, r)
+
+# Driver to enumerate primes up to N
+N = 50
+while n < N:
+    (m, tag, P, r) = tick(n, P, r)
+    if tag == "prime":
+        print(m)
+    n = m
+\end{verbatim}
+
+\begin{studentnote}
+This code prints all primes up to $N=50$.  
+Students are encouraged to extend it to recover factorizations of composites, 
+or to visualize the behavior of residue counters over time.  
+\end{studentnote}
+
+\section*{Appendix B: Extended Notation Reference}
+
+For convenience, we collect the key symbols used throughout the paper.
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Symbol & Meaning \\
+\midrule
+$\backslash$ & Set difference; $A \backslash B$ = elements of $A$ not in $B$ \\
+$\equiv$ & Congruence modulo $p$; $a \equiv b \pmod{p}$ means $p \mid (a-b)$ \\
+$\sim$ & Asymptotic equivalence; $f(n) \sim g(n)$ if $f/g \to 1$ as $n \to \infty$ \\
+$\forall$ & ``For all'' \\
+$\exists$ & ``There exists'' \\
+$\mathbb{N}_{\geq 2}$ & Integers $\{2,3,4,\dots\}$ \\
+$\sigma(n)$ & Prime exponent vector of $n$ \\
+$e_i(n)$ & Exponent of prime $p_i$ in factorization of $n$ \\
+$\nu_p(n)$ & $p$-adic valuation; highest power of $p$ dividing $n$ \\
+$d_p(n)$ & $p$-adic carry depth at $n$ \\
+$S_k$ & $p_k$-smooth semigroup; integers with prime factors $\leq p_k$ \\
+Pre-prime & A number $n \in S_k$ with $n+1 \notin S_k$ \\
+Canonical carry & Step $p_{k+1}-1 \mapsto p_{k+1}$ introducing new axis \\
+$P$ & List of known primes in odometer state \\
+$r_p(n)$ & Residue of $n$ modulo $p$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{References}
+
+\begin{enumerate}
+  \item G.H. Hardy and E.M. Wright. \emph{An Introduction to the Theory of Numbers}.  
+        Oxford University Press, 6th ed., 2008.
+  \item R. Crandall and C. Pomerance. \emph{Prime Numbers: A Computational Perspective}.  
+        Springer, 2nd ed., 2005.
+  \item H. Cohen. \emph{Number Theory, Volume I: Tools and Diophantine Equations}.  
+        Springer, 2nd ed., 2007.
+\end{enumerate}
+\end{document}
