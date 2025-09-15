@@ -251,7 +251,9 @@ def phi_rel_from_TC(T: int, C: int) -> float:
 
 # ------------------------- Spiral plot (PNG) -------------------------
 
-def save_spiral_png_overlay(all_post: List[int],
+def save_spiral_png_overlay(nmin: int,
+		 	    nmax: int, 
+			    all_post: List[int],
                             phi_over_tau: List[int],
                             final_rows: List[Tuple[int,int,float,bool,bool,bool]],
                             png_path: str,
@@ -260,7 +262,7 @@ def save_spiral_png_overlay(all_post: List[int],
                             bw: bool = False,
                             show_grid: bool = True,
                             show_labels: bool = True,
-                            annotate_ring: bool = False,
+                            annotate_ring: bool = True,
                             ring_n: Optional[int] = None,
                             annotate_arm: bool = False,
                             arm_residue: Optional[int] = None,
@@ -292,7 +294,14 @@ def save_spiral_png_overlay(all_post: List[int],
     def coords(ns: List[int]):
         xs, ys = [], []
         for n in ns:
-            r = math.sqrt(n)
+#            r = math.sqrt(n)
+            r_min = math.sqrt(nmin)
+            r_max = math.sqrt(nmax)
+            if r_max > r_min:
+                r = (math.sqrt(n) - r_min) / (r_max - r_min)
+            else:
+                # Fallback: degenerate case, just use raw sqrt
+                r = math.sqrt(n)
             th = n * golden_angle
             xs.append(r * math.cos(th))
             ys.append(r * math.sin(th))
@@ -614,6 +623,8 @@ def run_pipeline(nmin: int, nmax: int, threshold: float,
     # Save PNG if requested
     if write_png and png_path:
         save_spiral_png_overlay(
+            nmin,
+            nmax, 
             all_post_ns,
             phi_over_tau_ns,
             final_rows,
@@ -621,7 +632,7 @@ def run_pipeline(nmin: int, nmax: int, threshold: float,
             bw=png_bw,
             show_grid=png_grid,
             show_labels=png_labels,
-            classic_markers=png_classic_markers
+            classic_markers=png_classic_markers,
         )
 
     # Save stats.json if requested
